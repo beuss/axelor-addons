@@ -71,7 +71,7 @@ public class ExportProductServiceImpl implements ExportProductService {
    * Version from which BOOM-5826 is fixed. FIXME Not accurate right now as bug is not fixed in last
    * version so we can just put lastVersion+1 until a fix is released
    */
-  private static final String FIX_POSITION_IN_CATEGORY_VERSION = "1.7.3.5";
+  private static final String FIX_POSITION_IN_CATEGORY_VERSION = "1.8.0";
 
   private ProductRepository productRepo;
   private UnitConversionService unitConversionService;
@@ -128,6 +128,7 @@ public class ExportProductServiceImpl implements ExportProductService {
     if (appConfig.getExportNonSoldProducts() == Boolean.FALSE) {
       filter.append(" AND (self.sellable = true and self.productSynchronizedInPrestashop = true)");
     }
+    final boolean needsPositionFix = ws.compareVersion(FIX_POSITION_IN_CATEGORY_VERSION) < 0;
 
     final PrestashopProduct defaultProduct = ws.fetchDefault(PrestashopResourceType.PRODUCTS);
     final PrestashopProductCategory remoteRootCategory =
@@ -372,10 +373,8 @@ public class ExportProductServiceImpl implements ExportProductService {
           // TODO Should we handle supplier?
 
           remoteProduct.setUpdateDate(LocalDateTime.now());
-          if (ws.compareVersion(FIX_POSITION_IN_CATEGORY_VERSION) < 0) {
-            // Workaround Prestashop bug BOOM-5826 (position in category handling in prestashop's
-            // webservices is a joke). Trade-off is that we shuffle categories on each update…
-            remoteProduct.setPositionInCategory(0);
+          if (needsPositionFix) {
+            fixPositionIncategory(remoteProduct);
           }
           remoteProduct.setLowStockAlert(true);
           remoteProduct = ws.save(PrestashopResourceType.PRODUCTS, remoteProduct);
@@ -483,6 +482,8 @@ public class ExportProductServiceImpl implements ExportProductService {
       throws IOException {
     int errors = 0;
     int done = 0;
+    final boolean needsPositionFix = ws.compareVersion(FIX_POSITION_IN_CATEGORY_VERSION) < 0;
+
     logBuffer.write(String.format("%n===== PICTURES EXPORT =====%n"));
 
     final List<Product> products =
@@ -514,6 +515,9 @@ public class ExportProductServiceImpl implements ExportProductService {
             new FileInputStream(MetaFiles.getPath(localProduct.getPicture()).toFile())) {
           PrestashopImage image = ws.addImage(PrestashopResourceType.PRODUCTS, remoteProduct, is);
           remoteProduct.setDefaultImageId(image.getId());
+          if (needsPositionFix) {
+            fixPositionIncategory(remoteProduct);
+          }
           ws.save(PrestashopResourceType.PRODUCTS, remoteProduct);
           localProduct.setPrestaShopImageId(localProduct.getPicture().getId());
           localProduct.setPrestaShopImageVersion(localProduct.getPicture().getVersion());
@@ -537,5 +541,14 @@ public class ExportProductServiceImpl implements ExportProductService {
       throws AxelorException {
     if (value == null) return null;
     return unitConversionService.convert(from, to, value, value.scale(), product);
+  }
+
+  private void fixPositionIncategory(final PrestashopProduct remoteProduct) {
+    // Workaround Prestashop bug BOOM-5826 (position in category handling in prestashop's
+    // webservices is a joke). Trade-off is that we shuffle categories on each update…
+    remoteProduct.setPositionInCategory(
+        remoteProduct.getPositionInCategory() == null || remoteProduct.getPositionInCategory() == 0
+            ? 0
+            : remoteProduct.getPositionInCategory() - 1);
   }
 }
