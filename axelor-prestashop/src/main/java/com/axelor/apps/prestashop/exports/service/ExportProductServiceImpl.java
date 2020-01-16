@@ -309,20 +309,20 @@ public class ExportProductServiceImpl implements ExportProductService {
           if (localProduct.getLengthUnit() != null) {
             remoteProduct.setWidth(
                 convert(
-                    appConfig.getPrestaShopLengthUnit(),
                     localProduct.getLengthUnit(),
+                    appConfig.getPrestaShopLengthUnit(),
                     localProduct.getWidth(),
                     localProduct));
             remoteProduct.setHeight(
                 convert(
-                    appConfig.getPrestaShopLengthUnit(),
                     localProduct.getLengthUnit(),
+                    appConfig.getPrestaShopLengthUnit(),
                     localProduct.getHeight(),
                     localProduct));
             remoteProduct.setDepth(
                 convert(
-                    appConfig.getPrestaShopLengthUnit(),
                     localProduct.getLengthUnit(),
+                    appConfig.getPrestaShopLengthUnit(),
                     localProduct.getLength(),
                     localProduct));
           } else {
@@ -338,8 +338,8 @@ public class ExportProductServiceImpl implements ExportProductService {
           if (localProduct.getMassUnit() != null && weight != null) {
             remoteProduct.setWeight(
                 unitConversionService.convert(
-                    appConfig.getPrestaShopWeightUnit(),
                     localProduct.getMassUnit(),
+                    appConfig.getPrestaShopWeightUnit(),
                     weight,
                     weight.scale(),
                     localProduct));
