@@ -242,7 +242,10 @@ public class ExportProductServiceImpl implements ExportProductService {
               && localProduct.getProductCategory().getPrestaShopId() != null) {
             remoteProduct.setDefaultCategoryId(localProduct.getProductCategory().getPrestaShopId());
           } else {
-            remoteProduct.setDefaultCategoryId(remoteRootCategory.getId());
+            if (remoteProduct.getDefaultCategoryId()
+                == null) { // Do not override manually assigned category
+              remoteProduct.setDefaultCategoryId(remoteRootCategory.getId());
+            }
           }
 
           final int defaultCategoryId = remoteProduct.getDefaultCategoryId();
