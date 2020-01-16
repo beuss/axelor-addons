@@ -105,6 +105,11 @@ public class ExportOrderServiceImpl implements ExportOrderService {
     log.debug("Starting orders export to prestashop");
     logBuffer.write(String.format("%n====== ORDERS ======%n"));
 
+    if(appConfig.getNoOrderUpdate()) {
+      logBuffer.write(String.format("Order update disabled, skipping"));
+      return;
+    }
+
     final PSWebServiceClient ws =
         new PSWebServiceClient(appConfig.getPrestaShopUrl(), appConfig.getPrestaShopKey());
 

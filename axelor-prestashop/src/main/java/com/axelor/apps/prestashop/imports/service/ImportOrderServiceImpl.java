@@ -217,7 +217,19 @@ public class ImportOrderServiceImpl implements ImportOrderService {
         }
 
         SaleOrder localOrder = saleOrderRepo.findByPrestaShopId(remoteOrder.getId());
-        if (localOrder == null) {
+        if (localOrder != null) {
+          if(appConfig.getNoOrderUpdate()) {
+            logWriter.write(String.format(" local order already exists and order update is disabled, skipping [SUCCESS]%n"));
+            ++done;
+            continue;
+          }
+        } else {
+          if(localStatus.getPaid() == false && localStatus.getDelivered() == false && localStatus.getInvoiced() == false && localStatus.getShipped() == false && appConfig.getNoOrderUpdate()) {
+            logWriter.write(String.format(" order status does not allow confirmation and order update is disabled, skipping [SUCCESS]%n"));
+            ++done;
+            continue;
+          }
+
           try {
             localOrder =
                 saleOrderCreateService.createSaleOrder(
@@ -388,6 +400,7 @@ public class ImportOrderServiceImpl implements ImportOrderService {
             logWriter.write(
                 String.format(
                     " - PrestaShop isn't master for orders and local order hasn't been imported from it, skipping [SUCCESS]%n"));
+            ++done;
             continue;
           } else {
             // OK so order exists, we've to see if we need to update something
@@ -454,6 +467,11 @@ public class ImportOrderServiceImpl implements ImportOrderService {
           }
         }
 
+        if(appConfig.getNoOrderUpdate()) {
+          logWriter.write(String.format(" - order update disabled, not handling status changes [SUCCESS]%n"));
+          ++done;
+          continue;
+        }
         // If we end up here, we've a local sale order with lines matching the remote one
         // Let's see if we've more to to
         if (localStatus.getInvoiced()) {
@@ -503,9 +521,9 @@ public class ImportOrderServiceImpl implements ImportOrderService {
         if (localStatus.getShipped()) {
           if (localOrder.getDeliveryState() == SaleOrderRepository.DELIVERY_STATE_NOT_DELIVERED) {
             localOrder.setDeliveryDate(
-                    remoteOrder.getDeliveryDate() == null ?
-                            appBaseService.getTodayDate() :
-                            remoteOrder.getDeliveryDate().toLocalDate());
+                remoteOrder.getDeliveryDate() == null
+                    ? appBaseService.getTodayDate()
+                    : remoteOrder.getDeliveryDate().toLocalDate());
             try {
               List<Long> stockMoveIds = deliveryService.createStocksMovesFromSaleOrder(localOrder);
 

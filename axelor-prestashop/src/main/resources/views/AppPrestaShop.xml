@@ -24,6 +24,7 @@
 		<panel title="Import options (PrestaShop → ABS)">
 			<button name="importMetaDataBtn" title="Import prestashop status"  onClick="action-app-prestashop-method-fetch-metadata"/>
 			<spacer name="importMetaDataBtnSpacer"/>
+			<field name="noOrderUpdate" widget="boolean-switch"/>
 			<field name="defaultStatus" required="true"/>
 			<field name="invoicedStatus" required="true"/>
 			<field name="paidStatus" required="true"/>

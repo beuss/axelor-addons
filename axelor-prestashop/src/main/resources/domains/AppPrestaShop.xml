@@ -26,6 +26,8 @@
 
 		<boolean name="prestaShopMasterForOrders" title="Orders are handled exclusively on PrestaShop" default="false" help="If checked, this means that all orders are handled on prestashop. You'll not use Axelor for anything except creating orders that will be sent &amp; managed on PrestaShop. This means, among other things, no stock handling on Axelor side. If unchecked, import process will only create order taken from prestashop and all order management will be done on Axelor."/>
 
+		<boolean name="noOrderUpdate" title="Do not update imported order" help="Only import orders from PrestaShop once, never update local or remote orders, everything will be handled by hand. Orders will only be imported if paid/delivered/shipped as confirmed order and remote status will be left untouched"/>
+
 		<one-to-one ref="com.axelor.apps.prestashop.db.PrestashopOrderStatusCacheEntry" name="defaultStatus" title="PrestaShop status for confirmed orders" help="Orders with a Confirmed/Finalized/Finished status but neither paid nor delivered nor invoiced will be set to this status"/>
 		<one-to-one ref="com.axelor.apps.prestashop.db.PrestashopOrderStatusCacheEntry" name="invoicedStatus" title="PrestaShop status for invoiced orders" help="Orders invoiced but not paid will be set to this status"/>
 		<one-to-one ref="com.axelor.apps.prestashop.db.PrestashopOrderStatusCacheEntry" name="paidStatus" title="PrestaShop status for paid orders" help="Orders paid but not delivered will be set to this status"/>
